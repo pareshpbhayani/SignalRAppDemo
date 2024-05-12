@@ -1,0 +1,35 @@
+﻿@page
+@model ChatModel
+@{
+    ViewData["Title"] = "Chat page";
+}
+
+@section scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script> <!-- Load SignalR library -->
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/chathub") // Connect to the hub
+            .build();
+
+        // Receive messages from the hub
+        connection.on("ReceiveMessage", function(user, message) {
+            const msg = document.createElement("div");
+            msg.textContent = `${user}: ${message}`;
+            document.getElementById("messages").appendChild(msg);
+        });
+
+        connection.start().catch(err => console.error(err.toString())); // Start connection
+
+        function sendMessage() {
+            const user = document.getElementById("user").value;
+            const message = document.getElementById("message").value;
+            connection.invoke("SendMessage", user, message).catch(err => console.error(err.toString()));
+        }
+    </script>
+}
+
+<h1>SignalR Chat</h1>
+<input type="text" id="user" placeholder="Your Name">
+<input type="text" id="message" placeholder="Type a message">
+<button onclick="sendMessage()">Send</button>
+<div id="messages"></div> <!-- Messages will appear here -->
